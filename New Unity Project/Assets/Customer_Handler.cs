@@ -7,7 +7,9 @@ public class Customer_Handler : MonoBehaviour
     public GameObject[] items;
     public GameObject replyText;
 
-    
+    public GameObject timerBar;
+
+    public float waitTime = 30;
 
     public string helloText = "Hello";
     public string thankText = "Thanks";
@@ -15,6 +17,7 @@ public class Customer_Handler : MonoBehaviour
 
     public bool satisfied;
     public bool arrived;
+    public bool late;
 
     private void Init()
     {
@@ -26,11 +29,14 @@ public class Customer_Handler : MonoBehaviour
             Instantiate(items[i],transform.position - transform.up/2,transform.rotation,transform);
             items[i] = null;
         }
+
+        timerBar.GetComponent<Timer_Bar>().SetTimer(waitTime);
     }
 
     private void Update()
     {
-        if (!satisfied)
+        // Brings customer to store
+        if (!satisfied && !late)
         {
             if (transform.position.y > 0)
             {
@@ -45,25 +51,40 @@ public class Customer_Handler : MonoBehaviour
                 }
             }
         }
+
+        // Checks whether all customer items are washed
         for (int i = 0; i < items.Length; i++)
         {
             if (items[i] == null)
             {
                 break;
             }
-            if (i == items.Length -1 && arrived)
+            if (i == items.Length - 1 && arrived)
             {
                 satisfied = true;
             }
         }
-        if (satisfied)
+
+        // Returns customer
+        if (satisfied || late)
         {
-            replyText.GetComponent<Text_Handler>().Display(goodbyeText);
+            if (!late)
+            {
+                replyText.GetComponent<Text_Handler>().Display(goodbyeText);
+            }
+            
             transform.position = transform.position + transform.up * Time.deltaTime;
             if (transform.position.y > 5)
             {
                 Destroy(gameObject);
             }
+        }
+
+        // Checks whether the player is late on the order
+        if (timerBar.GetComponent<Timer_Bar>().completed && !late && arrived)
+        {
+            replyText.GetComponent<Text_Handler>().Display("I'm Leaving, this is taking too long");
+            late = true;
         }
     }
 
